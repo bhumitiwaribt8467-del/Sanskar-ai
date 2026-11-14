@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sanskar-AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:#101827;color:white;
+}
+header{
+  padding:20px;background:#18243a;
+  text-align:center;font-size:25px;
+  font-weight:bold;color:#65e6d0;
+}
+#chat{
+  height:70vh;overflow-y:auto;
+  padding:16px;
+}
+.msg{
+  padding:13px;margin:12px 0;
+  border-radius:14px;max-width:90%;
+  white-space:pre-wrap;line-height:1.5;
+}
+.user{background:#245c83;margin-left:auto}
+.ai{background:#26344b;margin-right:auto}
+footer{
+  position:fixed;bottom:0;width:100%;
+  display:flex;padding:12px;
+  background:#18243a;gap:8px;
+}
+input{
+  flex:1;min-width:0;padding:14px;
+  border-radius:12px;border:0;font-size:16px;
+}
+button{
+  border:0;border-radius:12px;
+  padding:12px 17px;background:#65e6d0;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<header>✨ Sanskar-AI</header>
+
+<div id="chat">
+  <div class="msg ai">
+    नमस्ते! मैं Sanskar-AI हूँ।
+    बताइए, मैं आपकी क्या मदद कर सकता हूँ?
+  </div>
+</div>
+
+<footer>
+  <input id="message" placeholder="अपना सवाल लिखें...">
+  <button id="send">भेजें</button>
+</footer>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("message");
+const send = document.getElementById("send");
+
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+async function askAI() {
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage(message, "user");
+  input.value = "";
+  send.disabled = true;
+
+  const reply = addMessage("Sanskar-AI जवाब तैयार कर रहा है...", "ai");
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({message})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.error || "Request failed");
+
+    reply.textContent = data.reply || "कोई जवाब नहीं मिला।";
+  } catch (error) {
+    reply.textContent = "अभी AI से संपर्क नहीं हो पाया। सर्वर सेटिंग जाँचें।";
+  }
+
+  send.disabled = false;
+  input.focus();
+}
+
+send.addEventListener("click", askAI);
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") askAI();
+});
+</script>
+
+</body>
+</html>
